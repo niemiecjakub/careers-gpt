@@ -6,7 +6,7 @@ from semantic_kernel.agents import ChatCompletionAgent, ChatHistoryAgentThread
 from semantic_kernel.connectors.ai.open_ai import OpenAIChatCompletion, OpenAIPromptExecutionSettings
 from semantic_kernel.connectors.ai import FunctionChoiceBehavior
 from semantic_kernel.functions import KernelArguments
-from plugins import CvPlugin, JobPlugin
+from plugins import CvPlugin, JobPlugin, SearchPlugin
 from prompt_message import JOB_AGENT_SYSTEM_PROMPT
 
 
@@ -19,6 +19,7 @@ async def main():
     kernel.add_service(OpenAIChatCompletion(api_key=os.getenv("OPENAI_API_KEY"),ai_model_id=os.getenv("CHAT_MODEL_ID")))
     kernel.add_plugin(CvPlugin(kernel), "cv_plugin")
     kernel.add_plugin(JobPlugin(kernel), "job_plugin")
+    kernel.add_plugin(SearchPlugin(kernel), "search_plugin")
     
     agent = ChatCompletionAgent(
         kernel=kernel,

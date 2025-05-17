@@ -8,7 +8,7 @@ from .cv_models import (
     CvDocument)
 
 from .job_models import JobDocument
-from .news_models import NewsSearch
+from .news_models import News, Search
 
 __all__ = [
     "Link",
@@ -19,5 +19,6 @@ __all__ = [
     "CoreCvDocument",
     "CvDocument",
     "JobDocument",
-    "NewsSearch"
+    "News",
+    "Search"
 ]
