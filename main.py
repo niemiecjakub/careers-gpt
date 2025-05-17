@@ -9,7 +9,6 @@ from semantic_kernel.functions import KernelArguments
 from plugins import CvPlugin, JobPlugin
 from prompt_message import JOB_AGENT_SYSTEM_PROMPT
 
-load_dotenv() 
 
 async def main():
 
@@ -18,8 +17,8 @@ async def main():
 
     kernel = Kernel()
     kernel.add_service(OpenAIChatCompletion(api_key=os.getenv("OPENAI_API_KEY"),ai_model_id=os.getenv("CHAT_MODEL_ID")))
-    kernel.add_plugin(CvPlugin(kernel),  "cv_plugin")
-    kernel.add_plugin(JobPlugin(kernel),  "job_plugin")
+    kernel.add_plugin(CvPlugin(kernel), "cv_plugin")
+    kernel.add_plugin(JobPlugin(kernel), "job_plugin")
     
     agent = ChatCompletionAgent(
         kernel=kernel,
@@ -38,5 +37,6 @@ async def main():
             thread = response.thread
         print(end="\n\n")
 
+load_dotenv() 
+asyncio.run(main())
 
-asyncio.run(main()) 

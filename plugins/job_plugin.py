@@ -1,9 +1,9 @@
 import json
 from typing import Annotated
 from semantic_kernel import Kernel
-from models.job_models import JobDocument
+from models import JobDocument
 from semantic_kernel.functions import kernel_function, KernelArguments, KernelFunctionFromPrompt
-from service.web_page_service import WebPageService
+from services import WebPageService
 from semantic_kernel.connectors.ai.open_ai import OpenAIChatPromptExecutionSettings
 from prompt_message import JOB_DATA_EXTRACTOR_PROMPT
 

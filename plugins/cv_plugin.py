@@ -1,7 +1,7 @@
 import json
 from typing import Annotated
-from models.cv_models import CvDocument
-from service.pdf_service import PdfService
+from models import CvDocument
+from services import PdfService
 from semantic_kernel.functions import kernel_function, KernelArguments, KernelFunctionFromPrompt
 from semantic_kernel import Kernel
 from semantic_kernel.connectors.ai.open_ai import OpenAIChatPromptExecutionSettings
