@@ -9,7 +9,6 @@ from semantic_kernel.functions import KernelArguments
 from plugins import CvPlugin, JobPlugin, SearchPlugin
 from prompt_message import JOB_AGENT_SYSTEM_PROMPT
 
-
 async def main():
 
     settings = OpenAIPromptExecutionSettings()
