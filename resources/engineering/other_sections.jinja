@@ -1,0 +1,12 @@
+{% for section in other_sections %} 
+\section{ {{section.title}} }      
+    \begin{onecolentry}
+        {{section.Description}}
+        \vspace{0.2 cm}
+        \begin{highlights}
+            {% for detail in section.details %} 
+                \item {{ detail }}
+            {% endfor %}
+        \end{highlights}
+    \end{onecolentry}      
+{% endfor %}

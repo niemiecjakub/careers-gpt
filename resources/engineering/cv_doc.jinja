@@ -1,0 +1,20 @@
+{% include "engineering/settings.jinja" %}
+
+\begin{document}
+
+\newcommand{\AND}{\unskip
+    \cleaders\copy\ANDbox\hskip\wd\ANDbox
+    \ignorespaces
+}
+\newsavebox\ANDbox
+\sbox\ANDbox{$|$}
+    
+{% include "engineering/personal_details.jinja" %}
+{% include "engineering/about_me.jinja" %}
+{% include "engineering/education.jinja" %}
+{% include "engineering/work_experience.jinja" %}
+{% include "engineering/skills.jinja" %}
+{% include "engineering/languages.jinja" %}
+{% include "engineering/other_sections.jinja" %}
+
+\end{document}

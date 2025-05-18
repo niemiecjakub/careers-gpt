@@ -1,0 +1,19 @@
+\section{Experience}     
+{% for experience in work_experience %} 
+    \begin{twocolentry}{
+        {{ experience.BeginDate }} – {{ experience.EndDate }}
+    }
+    \textbf{ {{ experience.job_title }}, {{ experience.company }} - {{ experience.location }} }\end{twocolentry}
+    \vspace{0.10 cm}
+    {{ experience.description }}
+    \vspace{0.10 cm}
+    \begin{onecolentry}
+        \begin{highlights}
+            {% for responsibility in experience.responsibilities %} 
+                \item {{ responsibility }}
+            {% endfor %}
+        \end{highlights}
+    \end{onecolentry}      
+    \vspace{0.2 cm}
+{% endfor %}
+\vspace{-0.2 cm}

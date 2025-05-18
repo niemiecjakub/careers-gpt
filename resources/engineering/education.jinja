@@ -1,0 +1,18 @@
+\section{Education}  
+{% for education in education %}
+    \begin{twocolentry}{
+        {{ education.begin_date }} - {{ education.end_date }}
+    }
+    \textbf{ {{education.institution}}, {{education.location}} },  {{education.degree}} 
+    \end{twocolentry}
+
+    \vspace{0.10 cm}
+    \begin{onecolentry}
+        \begin{highlights}
+            \item \textbf{ {{education.field_of_study}} }
+            \item {{education.description}} 
+        \end{highlights}
+    \end{onecolentry}
+    \vspace{0.3 cm}
+{% endfor %}
+\vspace{-0.3 cm}

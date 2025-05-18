@@ -1,0 +1,25 @@
+\begin{header}
+    \fontsize{25 pt}{25 pt}\selectfont {{ personal_details.name }}
+    \vspace{5 pt}
+    \normalsize
+
+    \mbox{ {{ personal_details.location }} }%
+    \kern 5.0 pt%
+    \AND%
+    \kern 5.0 pt%
+    \mbox{\hrefWithoutArrow{mailto: {{ personal_details.email }} }{ {{ personal_details.email }} }}%
+    \kern 5.0 pt%
+    \AND%
+    \kern 5.0 pt%
+    \mbox{\hrefWithoutArrow{tel: {{ personal_details.phone }} }{ {{ personal_details.phone }} }}%
+    \kern 5.0 pt%
+    \AND%
+    \kern 5.0 pt%
+{% set link_strings = [] %}
+{% for link in personal_details.links %}
+  {% set _ = link_strings.append("\\hrefWithoutArrow{" ~ link.url ~ "}{" ~ link.url ~ "}") %}
+{% endfor %}
+\mbox{ {{ link_strings | join(" \\textbar{} ") }} }
+
+\end{header}
+\vspace{5 pt - 0.3 cm}
