@@ -7,6 +7,10 @@ requires-python = ">=3.11"
 dependencies = [
     "beautifulsoup4>=4.13.4",
     "duckduckgo-search>=8.0.2",
+    "pandas>=2.2.3",
     "pdfplumber>=0.11.6",
+    "psycopg2>=2.9.10",
+    "psycopg2-binary>=2.9.10",
     "semantic-kernel>=1.30.0",
+    "sqlalchemy>=2.0.41",
 ]
