@@ -1,5 +1,6 @@
 from sqlalchemy import Column, Integer, String, ForeignKey, Date, Text
 from sqlalchemy.orm import relationship
+from pgvector.sqlalchemy import Vector
 from database import Base
 
 class Company(Base):
@@ -39,6 +40,8 @@ class Review(Base):
     date = Column(Date)
     job_title = Column(Text)
 
+    embedding = Column(Vector(768))
+    
     company = relationship("Company")
     employment_status = relationship("EmploymentStatus")
     employment_duration = relationship("EmploymentDuration")

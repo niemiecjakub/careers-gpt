@@ -1,8 +1,9 @@
 import pandas as pd
 import re
 from typing import Optional
-from db_models import Company, Review, EmploymentDuration, EmploymentStatus
-from database import SessionLocal
+from db_models import Base,Company, Review, EmploymentDuration, EmploymentStatus
+from database import engine, SessionLocal
+
 from sqlalchemy.exc import IntegrityError
 from datetime import datetime
 import math
@@ -83,6 +84,9 @@ class InitDatabase:
             print(f"Invalid date format: {date_str} -> {e}")
             return None
 
+    def create_tables(self):
+        Base.metadata.create_all(bind=engine)
+        
     def insert_companies(self, chunksize = 100000) -> None:
         session = SessionLocal()
         seen_names = set()
