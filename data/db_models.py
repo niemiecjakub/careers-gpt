@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, Date, Text
+from sqlalchemy import Column, Integer, String, ForeignKey, Date, Text, Boolean, Enum
 from sqlalchemy.orm import relationship
 from pgvector.sqlalchemy import Vector
 from database import Base
@@ -18,6 +18,12 @@ class EmploymentDuration(Base):
     id = Column(Integer, primary_key=True)
     duration = Column(String, nullable=False, unique=True)
 
+class Opinion(Base):
+    __tablename__ = 'opinion'
+    id = Column(Integer, primary_key=True)
+    symbol = Column(String, nullable=False, unique=True)
+    opinion = Column(String, nullable=False, unique=True)
+    
 class Review(Base):
     __tablename__ = 'review'
     id = Column(Integer, primary_key=True)
@@ -26,10 +32,10 @@ class Review(Base):
     employment_status_id = Column(Integer, ForeignKey('employment_status.id'))
     employment_duration_id = Column(Integer, ForeignKey('employment_duration.id'))
     pros = Column(Text)
-    cons = Column(Text)
-    recommended = Column(String)
-    ceo_approval = Column(String)
-    business_outlook = Column(String)
+    cons = Column(Text)  
+    recommended = Column(Boolean)  
+    ceo_opinion_id = Column(Integer, ForeignKey('opinion.id'))
+    business_outlook_opinion_id = Column(Integer, ForeignKey('opinion.id'))
     career_opportunities = Column(Integer)
     compensation_and_benefits = Column(Integer)
     senior_management = Column(Integer)
@@ -45,3 +51,6 @@ class Review(Base):
     company = relationship("Company")
     employment_status = relationship("EmploymentStatus")
     employment_duration = relationship("EmploymentDuration")
+    
+    ceo_opinion = relationship("Opinion", foreign_keys=[ceo_opinion_id])
+    business_outlook_opinion = relationship("Opinion", foreign_keys=[business_outlook_opinion_id])

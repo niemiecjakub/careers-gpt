@@ -1,12 +1,14 @@
 import pandas as pd
+import os
 import re
 from typing import Optional
-from db_models import Base,Company, Review, EmploymentDuration, EmploymentStatus
+from db_models import Base, Company, Review, EmploymentDuration, EmploymentStatus, Opinion
 from database import engine, SessionLocal
-
+from sqlalchemy import Column, text
 from sqlalchemy.exc import IntegrityError
 from datetime import datetime
 import math
+import ollama
 
 class InitDatabase:
     def __init__(self, csv: str):
@@ -84,9 +86,81 @@ class InitDatabase:
             print(f"Invalid date format: {date_str} -> {e}")
             return None
 
-    def create_tables(self):
-        Base.metadata.create_all(bind=engine)
+    def __create_review_embedding(self, 
+                                  review: Review, 
+                                  embedding_model: str, 
+                                  employment_status : Optional[EmploymentStatus], 
+                                  employment_duration:Optional[EmploymentDuration],
+                                  opinion_map: dict[Column[str], Opinion]):
+        summary_lines = [f"Review title: {review.review_title}"]
+        if review.job_title is not None:
+            summary_lines.append(f"Reviewer Job title: {review.job_title}")
+        if employment_status is not None:
+            summary_lines.append(f"Employment status: {employment_status.status}")
+        if employment_duration is not None:
+            summary_lines.append(f"Employment duration: {employment_duration.duration}")   
+        if review.rating is not None:
+            summary_lines.append(f"General rating: {review.rating}/5")
+        if review.pros is not None:
+            summary_lines.append(f"Pros: {review.pros}")
+        if review.cons is not None:
+            summary_lines.append(f"Cons: {review.cons}")          
+        if review.career_opportunities is not None:
+            summary_lines.append(f"Career opportunities: {review.career_opportunities}/5")
+        if review.compensation_and_benefits is not None:
+            summary_lines.append(f"Compensation and benefits: {review.compensation_and_benefits}/5")
+        if review.senior_management is not None:
+            summary_lines.append(f"Senior management: {review.senior_management}/5")
+        if review.work_life_balance is not None:
+            summary_lines.append(f"Work-life balance: {review.work_life_balance}/5")
+        if review.culture_and_values is not None:
+            summary_lines.append(f"Culture and values: {review.culture_and_values}/5")
+        if review.diversity_and_inclusion is not None:
+            summary_lines.append(f"Diversity and inclusion: {review.diversity_and_inclusion}/5")      
+        if review.recommended is not None:
+            recommended_value = "Yes" if review.recommended == True else "No"   
+            summary_lines.append(f"Recommended: {recommended_value}")      
+        if review.ceo_opinion_id is not None:
+            ceo_opinion_value : Opinion = opinion_map.get(review.ceo_opinion_id, None)
+            if ceo_opinion_value is not None:
+                summary_lines.append(f"CEO Opinion: {ceo_opinion_value.opinion}")        
+        if review.business_outlook_opinion_id is not None:
+            business_outlook_opinion_value : Opinion = opinion_map.get(review.business_outlook_opinion_id, None)
+            if business_outlook_opinion_value is not None:
+                summary_lines.append(f"Business Outlook: {business_outlook_opinion_value.opinion}")
+            
+        review_summary = " | ".join(summary_lines)
         
+        embedding = ollama.embed(
+            model=embedding_model, 
+            input=review_summary
+        )
+        
+        return embedding.embeddings[0]
+
+    def __create_bool_opinion(self,value: Optional[str]) -> Optional[bool]:
+        """From v/x/None create boolean value
+        Applies for:
+        - Recommended
+        """
+        value = self.__safe_str(value)
+        if value == "v":
+            return True
+        if value == "x":
+            return False
+        return None
+    
+    def __create_opinion(self, opinions_map: dict, value: Optional[str]) -> Optional[int]:
+        value = self.__safe_str(value)
+        opinion = opinions_map.get(value, None)
+        return opinion.id if opinion else None
+    
+    def initialize_tables(self):
+        con = engine.connect()
+        con.execute(text("CREATE EXTENSION IF NOT EXISTS vector;"))
+        con.commit()
+        Base.metadata.create_all(bind=engine)
+                
     def insert_companies(self, chunksize = 100000) -> None:
         session = SessionLocal()
         seen_names = set()
@@ -155,10 +229,29 @@ class InitDatabase:
 
         finally:
             session.close()
-          
-    def insert_reviews(self, chunksize=100000) -> None:
+         
+    def insert_opinions(self):
+        opinions = {
+            'v': 'Positive',
+            'r': 'Mild',
+            'x': 'Negative',
+            'o': 'No opinion'
+        }  
+           
+        session = SessionLocal()
+        session.bulk_save_objects([
+            Opinion(symbol=symbol, opinion=opinion) for symbol, opinion in opinions.items()
+        ])   
+             
+        session.commit()
+                
+    def insert_reviews(self, chunksize=20) -> None:
         batch_number = 0  
         session = SessionLocal()
+        embedding_model = os.getenv("OLLAMA_EMBEDDING_MODEL")
+        
+        opinions = session.query(Opinion).all()
+        opinions_map= {op.symbol: op for op in opinions} 
         
         try:
             for chunk in pd.read_csv(self.csv, chunksize=chunksize, on_bad_lines="warn", low_memory=False):  
@@ -178,7 +271,7 @@ class InitDatabase:
                         
                         employment_status = session.query(EmploymentStatus).filter_by(status=employment_status_name).first()
                         employment_duration = session.query(EmploymentDuration).filter_by(duration=employment_duration_name).first()
-
+                        
                         review = Review(
                             rating=self.__safe_int(row["rating"]),
                             review_title=self.__safe_str(row["title"]),
@@ -186,9 +279,9 @@ class InitDatabase:
                             employment_duration_id=employment_duration.id if employment_duration else None,
                             pros=self.__safe_str(row["pros"]),
                             cons=self.__safe_str(row["cons"]),
-                            recommended=self.__safe_str(row["Recommend"]),
-                            ceo_approval=self.__safe_str(row["CEO Approval"]),
-                            business_outlook=self.__safe_str(row["Business Outlook"]),
+                            recommended=self.__create_bool_opinion(row["Recommend"]),
+                            ceo_opinion_id=self.__create_opinion(opinions_map, row["CEO Approval"]),
+                            business_outlook_opinion_id=self.__create_opinion(opinions_map, row["Business Outlook"]),                
                             career_opportunities=self.__safe_str_to_int(row["Career Opportunities"]),
                             compensation_and_benefits=self.__safe_str_to_int(row["Compensation and Benefits"]),
                             senior_management=self.__safe_str_to_int(row["Senior Management"]),
@@ -199,6 +292,12 @@ class InitDatabase:
                             date=self.__parse_date_string(row["date"]),
                             job_title=self.__safe_str(row["job"]),
                         )
+                        review.embedding = self.__create_review_embedding(
+                            review=review, 
+                            embedding_model=embedding_model, 
+                            employment_status=employment_status, 
+                            employment_duration=employment_duration, 
+                            opinion_map=opinions_map)
 
                         review_objects.append(review)
 
@@ -208,11 +307,10 @@ class InitDatabase:
                 if review_objects:
                     session.bulk_save_objects(review_objects)
                     session.commit()
-                print(f"BATCH {batch_number} - PROCESSED")
 
         except IntegrityError as e:
             print(f"Commit failed: {e}")
             session.rollback()
 
         finally:
-            session.close()
+            session.close() 
