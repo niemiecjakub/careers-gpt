@@ -1,9 +1,9 @@
 import pandas as pd
 import os
 import re
-from typing import Optional, Sequence
+from typing import Optional, Sequence, Set
 from db_models import base, Company, Review, EmploymentDuration, EmploymentStatus, Opinion
-from database import engine, session
+from database import engine
 from sqlalchemy import Column, text
 from sqlalchemy.exc import IntegrityError
 from datetime import datetime
@@ -202,8 +202,8 @@ class InitDatabase:
                 chunk = chunk.dropna(subset=['status'])
                 unique_status_entries = set(chunk['status'].unique())
 
-                new_employment_status_names = set()
-                new_employment_duration_names = set()
+                new_employment_status_names : Set[str] = set()
+                new_employment_duration_names: Set[str] = set()
 
                 for raw_status in unique_status_entries:
                     employment_status_name = self.__get_employment_status(raw_status)
@@ -218,7 +218,11 @@ class InitDatabase:
 
                 if new_employment_status_names:
                     session.bulk_save_objects([
-                        EmploymentStatus(status=status_name) for status_name in new_employment_status_names
+                        EmploymentStatus(
+                            status=status_name,
+                            is_current=status_name.lower().startswith("current")
+                        ) 
+                        for status_name in new_employment_status_names
                     ])
                     session.commit()
 
