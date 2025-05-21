@@ -1,7 +1,7 @@
 import pandas as pd
 import os
 import re
-from typing import Optional
+from typing import Optional, Sequence
 from db_models import Base, Company, Review, EmploymentDuration, EmploymentStatus, Opinion
 from database import engine, SessionLocal
 from sqlalchemy import Column, text
@@ -9,10 +9,14 @@ from sqlalchemy.exc import IntegrityError
 from datetime import datetime
 import math
 import ollama
+from dotenv import load_dotenv
 
 class InitDatabase:
     def __init__(self, csv: str):
+        if not os.path.exists(csv):
+           raise FileNotFoundError(f"CSV file not found: {csv}")
         self.csv = csv 
+        
     
     def __safe_str_to_int(self, value: str) -> Optional[int]:
         if value is None:
@@ -91,7 +95,7 @@ class InitDatabase:
                                   embedding_model: str, 
                                   employment_status : Optional[EmploymentStatus], 
                                   employment_duration:Optional[EmploymentDuration],
-                                  opinion_map: dict[Column[str], Opinion]):
+                                  opinion_map: dict[Column[str], Opinion]) -> Sequence[float]:
         summary_lines = [f"Review title: {review.review_title}"]
         if review.job_title is not None:
             summary_lines.append(f"Reviewer Job title: {review.job_title}")
@@ -155,13 +159,13 @@ class InitDatabase:
         opinion = opinions_map.get(value, None)
         return opinion.id if opinion else None
     
-    def initialize_tables(self):
+    def initialize_tables(self) -> None:
         con = engine.connect()
         con.execute(text("CREATE EXTENSION IF NOT EXISTS vector;"))
         con.commit()
         Base.metadata.create_all(bind=engine)
                 
-    def insert_companies(self, chunksize = 100000) -> None:
+    def insert_companies(self, chunksize : int = 100000) -> None:
         session = SessionLocal()
         seen_names = set()
 
@@ -188,7 +192,7 @@ class InitDatabase:
         finally:
             session.close()
             
-    def insert_employment_statuses(self, chunksize = 100000) -> None:
+    def insert_employment_statuses(self, chunksize : int = 100000) -> None:
         session = SessionLocal()
         seen_employment_status_names = set()
         seen_employment_duration_names = set()
@@ -230,7 +234,7 @@ class InitDatabase:
         finally:
             session.close()
          
-    def insert_opinions(self):
+    def insert_opinions(self) -> None:
         opinions = {
             'v': 'Positive',
             'r': 'Mild',
@@ -245,7 +249,7 @@ class InitDatabase:
              
         session.commit()
                 
-    def insert_reviews(self, chunksize=20) -> None:
+    def insert_reviews(self, create_embeddings : bool = False, chunksize : int = 1000,) -> None:
         batch_number = 0  
         session = SessionLocal()
         embedding_model = os.getenv("OLLAMA_EMBEDDING_MODEL")
@@ -292,12 +296,13 @@ class InitDatabase:
                             date=self.__parse_date_string(row["date"]),
                             job_title=self.__safe_str(row["job"]),
                         )
-                        review.embedding = self.__create_review_embedding(
-                            review=review, 
-                            embedding_model=embedding_model, 
-                            employment_status=employment_status, 
-                            employment_duration=employment_duration, 
-                            opinion_map=opinions_map)
+                        if create_embeddings:
+                            review.embedding = self.__create_review_embedding(
+                                review=review, 
+                                embedding_model=embedding_model, 
+                                employment_status=employment_status, 
+                                employment_duration=employment_duration, 
+                                opinion_map=opinions_map)
 
                         review_objects.append(review)
 
@@ -314,3 +319,15 @@ class InitDatabase:
 
         finally:
             session.close() 
+
+
+def initialize_db():
+    db = InitDatabase(os.getenv("CSV_INITIALIZATION_PATH"))
+    db.initialize_tables()
+    db.insert_employment_statuses()
+    db.insert_companies()
+    db.insert_opinions()
+    db.insert_reviews(create_embeddings=False)
+    
+load_dotenv()
+initialize_db()
