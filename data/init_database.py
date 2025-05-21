@@ -2,8 +2,8 @@ import pandas as pd
 import os
 import re
 from typing import Optional, Sequence
-from db_models import Base, Company, Review, EmploymentDuration, EmploymentStatus, Opinion
-from database import engine, SessionLocal
+from db_models import base, Company, Review, EmploymentDuration, EmploymentStatus, Opinion
+from database import engine, session
 from sqlalchemy import Column, text
 from sqlalchemy.exc import IntegrityError
 from datetime import datetime
@@ -163,10 +163,10 @@ class InitDatabase:
         con = engine.connect()
         con.execute(text("CREATE EXTENSION IF NOT EXISTS vector;"))
         con.commit()
-        Base.metadata.create_all(bind=engine)
+        base.metadata.create_all(bind=engine)
                 
     def insert_companies(self, chunksize : int = 100000) -> None:
-        session = SessionLocal()
+        session = session()
         seen_names = set()
 
         try:
@@ -193,7 +193,7 @@ class InitDatabase:
             session.close()
             
     def insert_employment_statuses(self, chunksize : int = 100000) -> None:
-        session = SessionLocal()
+        session = session()
         seen_employment_status_names = set()
         seen_employment_duration_names = set()
 
@@ -242,7 +242,7 @@ class InitDatabase:
             'o': 'No opinion'
         }  
            
-        session = SessionLocal()
+        session = session()
         session.bulk_save_objects([
             Opinion(symbol=symbol, opinion=opinion) for symbol, opinion in opinions.items()
         ])   
@@ -251,7 +251,7 @@ class InitDatabase:
                 
     def insert_reviews(self, create_embeddings : bool = False, chunksize : int = 1000,) -> None:
         batch_number = 0  
-        session = SessionLocal()
+        session = session()
         embedding_model = os.getenv("OLLAMA_EMBEDDING_MODEL")
         
         opinions = session.query(Opinion).all()

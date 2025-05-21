@@ -1,30 +1,30 @@
 from sqlalchemy import Column, Integer, String, ForeignKey, Date, Text, Boolean, Enum
 from sqlalchemy.orm import relationship
 from pgvector.sqlalchemy import Vector
-from database import Base
+from database import base
 
-class Company(Base):
+class Company(base):
     __tablename__ = 'company'
     id = Column(Integer, primary_key=True)
     name = Column(String, nullable=False, unique=True)
 
-class EmploymentStatus(Base):
+class EmploymentStatus(base):
     __tablename__ = 'employment_status'
     id = Column(Integer, primary_key=True,)
     status = Column(String, nullable=False, unique=True)
 
-class EmploymentDuration(Base):
+class EmploymentDuration(base):
     __tablename__ = 'employment_duration'
     id = Column(Integer, primary_key=True)
     duration = Column(String, nullable=False, unique=True)
 
-class Opinion(Base):
+class Opinion(base):
     __tablename__ = 'opinion'
     id = Column(Integer, primary_key=True)
     symbol = Column(String, nullable=False, unique=True)
     opinion = Column(String, nullable=False, unique=True)
     
-class Review(Base):
+class Review(base):
     __tablename__ = 'review'
     id = Column(Integer, primary_key=True)
     rating = Column(Integer)
