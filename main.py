@@ -38,4 +38,22 @@ async def main():
         print(end="\n\n")
 
 load_dotenv() 
-asyncio.run(main())
+# asyncio.run(main())
+import ollama
+from services import CompanyReviewService
+company_review_service = CompanyReviewService()
+
+company_rating = company_review_service.get_company_pros_cons(2665, True)
+print(len(company_rating.pros))
+
+# for company_rating in company_ratings:
+#     print("\n\n")
+    
+# pros ="|".join([review.pros for review in company_review_service.get_reviews_for_company(company_id=2665, limit=None)]) 
+# print(pros)
+    
+# embedding = ollama.embed(
+#             model=os.getenv("OLLAMA_EMBEDDING_MODEL"), 
+#             input=pros
+#         )
+# print(embedding.embeddings[0])

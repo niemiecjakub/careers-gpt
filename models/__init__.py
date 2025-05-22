@@ -10,6 +10,7 @@ from .cv_models import (
 from .job_models import JobDocument
 from .news_models import News, Search
 
+from .review_models import CompanyRatingSummary, CompanyProCons
 __all__ = [
     "Link",
     "PersonalDetails",
@@ -20,5 +21,7 @@ __all__ = [
     "CvDocument",
     "JobDocument",
     "News",
-    "Search"
+    "Search",
+    "CompanyRatingSummary",
+    "CompanyProCons"
 ]
