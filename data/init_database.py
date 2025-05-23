@@ -333,10 +333,10 @@ class InitDatabase:
 def initialize_db():
     db = InitDatabase(os.getenv("CSV_INITIALIZATION_PATH"))
     db.initialize_tables()
-    db.insert_employment_statuses()
-    db.insert_companies(create_embeddings=False)
-    db.insert_opinions()
-    db.insert_reviews(create_embeddings=False)
+    # db.insert_employment_statuses()
+    # db.insert_companies(create_embeddings=False)
+    # db.insert_opinions()
+    # db.insert_reviews(create_embeddings=False)
     
 load_dotenv()
 initialize_db()
