@@ -2,8 +2,8 @@ import pandas as pd
 import os
 import re
 from typing import Optional, Sequence, Set
-from db_models import base, Company, Review, EmploymentDuration, EmploymentStatus, Opinion
-from data import engine, Session
+from .db_models import base, Company, Review, EmploymentDuration, EmploymentStatus, Opinion
+from .database import engine, Session
 from sqlalchemy import Column, text
 from sqlalchemy.exc import IntegrityError
 from datetime import datetime
@@ -337,6 +337,3 @@ def initialize_db():
     db.insert_companies(create_embeddings=False)
     db.insert_opinions()
     db.insert_reviews(create_embeddings=False)
-    
-load_dotenv()
-initialize_db()
