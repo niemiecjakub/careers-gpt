@@ -1,24 +1,34 @@
 from typing import List, Optional
 from sqlalchemy.orm import joinedload
-from sqlalchemy import desc, func
-from data import session, Company, Review, EmploymentStatus
+from sqlalchemy import select, func, cast, String, desc
+from data import Session, Company, Review, EmploymentStatus
 from models import CompanyRatingSummary, CompanyProCons
+from sqlalchemy import select
 
 class CompanyReviewService:
-
+    
     def get_companies(self) -> List[Company]:
         """Return all companies."""
-        with session() as s:
+        with Session() as s:
             return s.query(Company).all()
 
     def get_company_id_by_name(self, company_name: int) -> Optional[int]:
         """Return a company ID by its name."""
-        with session() as s:
-            return s.query(Company).filter(Company.name == company_name).first()
-
+        company = (Session().execute(
+            select(Company)
+            .where(func.similarity(Company.name, company_name) > 0.3)
+            .order_by(func.similarity(Company.name, cast(company_name, String)).desc())
+            .limit(1)
+            )
+        .scalars()
+        .first()
+        )
+       
+        return company.id if company else None
+    
     def get_reviews_for_company(self, company_id: int, limit: int = 10) -> List[Review]:
         """Return reviews for a specific company."""
-        with session() as s:
+        with Session() as s:
             return s.query(Review).options(
                 joinedload(Review.employment_status),
                 joinedload(Review.employment_duration),
@@ -28,7 +38,7 @@ class CompanyReviewService:
 
     def get_company_rating_summary(self, company_id: int, current_employee: Optional[bool] = None) -> CompanyRatingSummary:
         """Get detailed company rating"""
-        with session() as s:
+        with Session() as s:
             query = s.query(
                 Review.company_id,
                 Company.name.label("company_name"),
@@ -67,7 +77,7 @@ class CompanyReviewService:
 
     def get_company_pros_cons(self, company_id: int, current_employee: Optional[bool] = None) -> CompanyProCons:
         """Get pros and cons for company"""
-        with session() as s:
+        with Session() as s:
             query = s.query(
                 Review.pros,
                 Review.cons
@@ -87,6 +97,3 @@ class CompanyReviewService:
                 pros=[review.pros for review in reviews],
                 cons=[review.cons for review in reviews],
             )
-            
-# TODO: endpoints for extracting data summary (averages, medians) for company reviews
-# TODO: company summary

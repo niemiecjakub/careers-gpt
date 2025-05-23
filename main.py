@@ -6,7 +6,7 @@ from semantic_kernel.agents import ChatCompletionAgent, ChatHistoryAgentThread
 from semantic_kernel.connectors.ai.open_ai import OpenAIChatCompletion, OpenAIPromptExecutionSettings
 from semantic_kernel.connectors.ai import FunctionChoiceBehavior
 from semantic_kernel.functions import KernelArguments
-from plugins import CvPlugin, JobPlugin, SearchPlugin
+from plugins import CvPlugin, JobPlugin, SearchPlugin, CompanyReviewPlugin
 from prompt_message import JOB_AGENT_SYSTEM_PROMPT
 
 async def main():
@@ -16,9 +16,11 @@ async def main():
 
     kernel = Kernel()
     kernel.add_service(OpenAIChatCompletion(api_key=os.getenv("OPENAI_API_KEY"),ai_model_id=os.getenv("CHAT_MODEL_ID")))
-    kernel.add_plugin(CvPlugin(kernel), "cv_plugin")
+    kernel.add_plugin(CvPlugin(kernel), "cv_plgin")
     kernel.add_plugin(JobPlugin(kernel), "job_plugin")
     kernel.add_plugin(SearchPlugin(kernel), "search_plugin")
+    kernel.add_plugin(SearchPlugin(kernel), "search_plugin")
+    kernel.add_plugin(CompanyReviewPlugin(kernel), "company_review_plugin")
     
     agent = ChatCompletionAgent(
         kernel=kernel,
@@ -38,22 +40,4 @@ async def main():
         print(end="\n\n")
 
 load_dotenv() 
-# asyncio.run(main())
-import ollama
-from services import CompanyReviewService
-company_review_service = CompanyReviewService()
-
-company_rating = company_review_service.get_company_pros_cons(2665, True)
-print(len(company_rating.pros))
-
-# for company_rating in company_ratings:
-#     print("\n\n")
-    
-# pros ="|".join([review.pros for review in company_review_service.get_reviews_for_company(company_id=2665, limit=None)]) 
-# print(pros)
-    
-# embedding = ollama.embed(
-#             model=os.getenv("OLLAMA_EMBEDDING_MODEL"), 
-#             input=pros
-#         )
-# print(embedding.embeddings[0])
+asyncio.run(main())

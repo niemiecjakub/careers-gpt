@@ -1,9 +1,9 @@
-from .database import base, session, engine
+from .database import base, Session, engine
 from .db_models import Company, EmploymentDuration, EmploymentStatus, Opinion, Review
 
 __all__ = [
     "base",
-    "session",
+    "Session",
     "engine",
     "Company",
     "EmploymentDuration",

@@ -3,7 +3,7 @@ import os
 import re
 from typing import Optional, Sequence, Set
 from db_models import base, Company, Review, EmploymentDuration, EmploymentStatus, Opinion
-from database import engine
+from database import engine, Session
 from sqlalchemy import Column, text
 from sqlalchemy.exc import IntegrityError
 from datetime import datetime
@@ -12,12 +12,13 @@ import ollama
 from dotenv import load_dotenv
 
 class InitDatabase:
+    
     def __init__(self, csv: str):
         if not os.path.exists(csv):
            raise FileNotFoundError(f"CSV file not found: {csv}")
         self.csv = csv 
+        self.embedding_model = os.getenv("OLLAMA_EMBEDDING_MODEL")
         
-    
     def __safe_str_to_int(self, value: str) -> Optional[int]:
         if value is None:
             return None
@@ -90,9 +91,15 @@ class InitDatabase:
             print(f"Invalid date format: {date_str} -> {e}")
             return None
 
+    def __create_embedding(self, input: str) -> Sequence[float]:
+        embedding = ollama.embed(
+            model=self.embedding_model, 
+            input=input
+        )    
+        return embedding.embeddings[0]
+
     def __create_review_embedding(self, 
                                   review: Review, 
-                                  embedding_model: str, 
                                   employment_status : Optional[EmploymentStatus], 
                                   employment_duration:Optional[EmploymentDuration],
                                   opinion_map: dict[Column[str], Opinion]) -> Sequence[float]:
@@ -133,14 +140,8 @@ class InitDatabase:
             if business_outlook_opinion_value is not None:
                 summary_lines.append(f"Business Outlook: {business_outlook_opinion_value.opinion}")
             
-        review_summary = " | ".join(summary_lines)
-        
-        embedding = ollama.embed(
-            model=embedding_model, 
-            input=review_summary
-        )
-        
-        return embedding.embeddings[0]
+        review_summary = " | ".join(summary_lines)        
+        return self.__create_embedding(review_summary)
 
     def __create_bool_opinion(self,value: Optional[str]) -> Optional[bool]:
         """From v/x/None create boolean value
@@ -162,11 +163,12 @@ class InitDatabase:
     def initialize_tables(self) -> None:
         con = engine.connect()
         con.execute(text("CREATE EXTENSION IF NOT EXISTS vector;"))
+        con.execute(text("CREATE EXTENSION IF NOT EXISTS pg_trgm;"))
         con.commit()
         base.metadata.create_all(bind=engine)
                 
-    def insert_companies(self, chunksize : int = 100000) -> None:
-        session = session()
+    def insert_companies(self, create_embeddings : bool = False, chunksize : int = 100000) -> None:
+        session = Session()
         seen_names = set()
 
         try:
@@ -183,9 +185,13 @@ class InitDatabase:
                 seen_names.update(new_names)
 
                 if new_names:
-                    session.bulk_save_objects([Company(name=name) for name in new_names])
+                    companies = [
+                        Company(name=name, embedding=self.__create_embedding(name) if create_embeddings else None)
+                        for name in new_names
+                    ]
+                    session.bulk_save_objects(companies)
                     session.commit()
-                    
+
         except IntegrityError:
             session.rollback()
             
@@ -193,7 +199,7 @@ class InitDatabase:
             session.close()
             
     def insert_employment_statuses(self, chunksize : int = 100000) -> None:
-        session = session()
+        session = Session()
         seen_employment_status_names = set()
         seen_employment_duration_names = set()
 
@@ -246,7 +252,7 @@ class InitDatabase:
             'o': 'No opinion'
         }  
            
-        session = session()
+        session = Session()
         session.bulk_save_objects([
             Opinion(symbol=symbol, opinion=opinion) for symbol, opinion in opinions.items()
         ])   
@@ -255,8 +261,7 @@ class InitDatabase:
                 
     def insert_reviews(self, create_embeddings : bool = False, chunksize : int = 1000,) -> None:
         batch_number = 0  
-        session = session()
-        embedding_model = os.getenv("OLLAMA_EMBEDDING_MODEL")
+        session = Session()
         
         opinions = session.query(Opinion).all()
         opinions_map= {op.symbol: op for op in opinions} 
@@ -303,7 +308,6 @@ class InitDatabase:
                         if create_embeddings:
                             review.embedding = self.__create_review_embedding(
                                 review=review, 
-                                embedding_model=embedding_model, 
                                 employment_status=employment_status, 
                                 employment_duration=employment_duration, 
                                 opinion_map=opinions_map)
@@ -323,13 +327,14 @@ class InitDatabase:
 
         finally:
             session.close() 
+        
 
-
+    
 def initialize_db():
     db = InitDatabase(os.getenv("CSV_INITIALIZATION_PATH"))
     db.initialize_tables()
     db.insert_employment_statuses()
-    db.insert_companies()
+    db.insert_companies(create_embeddings=False)
     db.insert_opinions()
     db.insert_reviews(create_embeddings=False)
     

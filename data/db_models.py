@@ -1,12 +1,13 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, Date, Text, Boolean, Enum
+from sqlalchemy import Column, Integer, String, ForeignKey, Date, Text, Boolean
 from sqlalchemy.orm import relationship
 from pgvector.sqlalchemy import Vector
-from .database import base
+from database import base
 
 class Company(base):
     __tablename__ = 'company'
     id = Column(Integer, primary_key=True)
     name = Column(String, nullable=False, unique=True)
+    embedding = Column(Vector(768))
 
 class EmploymentStatus(base):
     __tablename__ = 'employment_status'
@@ -46,7 +47,6 @@ class Review(base):
     company_id = Column(Integer, ForeignKey('company.id'), nullable=False)
     date = Column(Date)
     job_title = Column(Text)
-
     embedding = Column(Vector(768))
     
     company = relationship("Company")

@@ -15,7 +15,8 @@ class JobPlugin:
     @kernel_function(description="Retrieves job data from a web page")
     async def extract_job_data_from_web_page(
         self, 
-        url: str) -> Annotated[JobDocument, "The extracted job data"]:
+        url: str
+        ) -> Annotated[JobDocument, "The extracted job data"]:
         """Extracts job data from a web page."""
         web_page_service = WebPageService()
         job_data = web_page_service.get_html_content(url)
