@@ -3,7 +3,7 @@ import os
 import re
 from typing import Optional, Sequence, Set
 from db_models import base, Company, Review, EmploymentDuration, EmploymentStatus, Opinion
-from database import engine, Session
+from data import engine, Session
 from sqlalchemy import Column, text
 from sqlalchemy.exc import IntegrityError
 from datetime import datetime
@@ -333,10 +333,10 @@ class InitDatabase:
 def initialize_db():
     db = InitDatabase(os.getenv("CSV_INITIALIZATION_PATH"))
     db.initialize_tables()
-    # db.insert_employment_statuses()
-    # db.insert_companies(create_embeddings=False)
-    # db.insert_opinions()
-    # db.insert_reviews(create_embeddings=False)
+    db.insert_employment_statuses()
+    db.insert_companies(create_embeddings=False)
+    db.insert_opinions()
+    db.insert_reviews(create_embeddings=False)
     
 load_dotenv()
 initialize_db()

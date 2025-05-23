@@ -1,7 +1,7 @@
 from sqlalchemy import Column, Integer, String, ForeignKey, Date, Text, Boolean
 from sqlalchemy.orm import relationship
 from pgvector.sqlalchemy import Vector
-from database import base
+from data import base
 
 class Company(base):
     __tablename__ = 'company'
