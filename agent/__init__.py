@@ -10,36 +10,38 @@ from prompt_message import JOB_AGENT_SYSTEM_PROMPT
 
 class Agent:
 
-    @classmethod
-    async def _run(cls):
+    def __init__(self):
         settings = OpenAIPromptExecutionSettings()
         settings.function_choice_behavior = FunctionChoiceBehavior.Auto()
-
-        kernel = Kernel()
-        kernel.add_service(OpenAIChatCompletion(api_key=os.getenv("OPENAI_API_KEY"),ai_model_id=os.getenv("CHAT_MODEL_ID")))
-        kernel.add_plugin(CvPlugin(kernel), "cv_plgin")
-        kernel.add_plugin(JobPlugin(kernel), "job_plugin")
-        kernel.add_plugin(SearchPlugin(kernel), "search_plugin")
-        kernel.add_plugin(CompanyReviewPlugin(kernel), "company_review_plugin")
-
-        agent = ChatCompletionAgent(
-            kernel=kernel,
+        
+        self.kernel = Kernel()
+        self.kernel.add_service(OpenAIChatCompletion(api_key=os.getenv("OPENAI_API_KEY"),ai_model_id=os.getenv("CHAT_MODEL_ID")))
+        self.kernel.add_plugin(CvPlugin(self.kernel), "cv_plgin")
+        self.kernel.add_plugin(JobPlugin(self.kernel), "job_plugin")
+        self.kernel.add_plugin(SearchPlugin(self.kernel), "search_plugin")
+        self.kernel.add_plugin(CompanyReviewPlugin(self.kernel), "company_review_plugin")
+        
+        self.agent = ChatCompletionAgent(
+            kernel=self.kernel,
             name="jobAssistant",
             instructions= JOB_AGENT_SYSTEM_PROMPT,
             arguments=KernelArguments(),
         )
-
+        
+    async def _run(self):
         thread : ChatHistoryAgentThread | None = None
 
         while True:
             input_text = input("User > ")
             print("Assistant > ",end="")
-            async for response in agent.invoke_stream(messages=input_text, thread=thread):
+            async for response in self.agent.invoke_stream(messages=input_text, thread=thread):
                 print(response, end="")
                 thread = response.thread
             print(end="\n\n")
     
-    @classmethod
-    def run(cls):
+    def run_conversation(cls):
         asyncio.run(cls._run())
 
+    async def ask(self, message: str):
+        answer = await self.agent.get_response(messages=message)
+        return answer.content.content
