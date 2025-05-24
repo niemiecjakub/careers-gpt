@@ -27,20 +27,19 @@ class Agent:
             instructions= JOB_AGENT_SYSTEM_PROMPT,
             arguments=KernelArguments(),
         )
-        
-    async def _run(self):
-        thread : ChatHistoryAgentThread | None = None
-
-        while True:
-            input_text = input("User > ")
-            print("Assistant > ",end="")
-            async for response in self.agent.invoke_stream(messages=input_text, thread=thread):
-                print(response, end="")
-                thread = response.thread
-            print(end="\n\n")
     
-    def run_conversation(cls):
-        asyncio.run(cls._run())
+    def run_conversation(self):
+        async def conversation():
+            thread : ChatHistoryAgentThread | None = None
+            while True:
+                input_text = input("User > ")
+                print("Assistant > ",end="")
+                async for response in self.agent.invoke_stream(messages=input_text, thread=thread):
+                    print(response, end="")
+                    thread = response.thread
+                print(end="\n\n")
+                
+        asyncio.run(conversation())
 
     async def ask(self, message: str):
         answer = await self.agent.get_response(messages=message)
