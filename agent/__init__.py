@@ -27,8 +27,12 @@ class Agent:
             instructions= JOB_AGENT_SYSTEM_PROMPT,
             arguments=KernelArguments(),
         )
+        
+        self.i = 0
+        
+        self.thread : ChatHistoryAgentThread | None = None
     
-    def run_conversation(self):
+    def run_conversation_loop(self):
         async def conversation():
             thread : ChatHistoryAgentThread | None = None
             while True:
@@ -42,5 +46,11 @@ class Agent:
         asyncio.run(conversation())
 
     async def ask(self, message: str):
-        answer = await self.agent.get_response(messages=message)
-        return answer.content.content
+        response = await self.agent.get_response(messages=message, thread=self.thread)
+        self.thread = response.thread
+        return response.content.content
+    
+    async def ask_streaming(self, message: str):
+        async for response in self.agent.invoke_stream(messages=message, thread=self.thread):
+            self.thread = response.thread
+            yield response.content.content
