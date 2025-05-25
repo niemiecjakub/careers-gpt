@@ -1,7 +1,7 @@
 [project]
-name = "job-agent"
-version = "0.1.0"
-description = "Agent that helps with job matching"
+name = "careers-gpt"
+version = "0.1.1"
+description = "Careers and job application assistant"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
