@@ -15,14 +15,14 @@ class CvPlugin:
         self.kernel = kernel
         
     @spinner_async("Extracting PDF data")
-    @kernel_function(description="Retrives CV data from PDF file")
+    @kernel_function(description="Retrives CV data from uploaded file")
     async def extract_data_from_pdf(
         self, 
-        filePath: Annotated[str, "The path to the PDF file"]
     ) -> Annotated[CvDocument, "The extracted CV data"]:
         """Extracts text from a PDF file."""  
         pdf_service = PdfService()
-        cv_data = pdf_service.extract_data_from_pdf_path(filePath)
+        pdf_data = st.session_state["agent"].uploaded_cv
+        cv_data = pdf_service.extract_data_from_pdf_file(pdf_data)
 
         settings = OpenAIChatPromptExecutionSettings()
         settings.response_format = CvDocument

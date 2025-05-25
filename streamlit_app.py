@@ -11,15 +11,40 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-if "agent" not in st.session_state:
-    st.session_state["agent"] = Agent()
-    
+uploaded_file = st.file_uploader("Upload CV", type=["pdf", "docx", "txt"])
+
 if "messages" not in st.session_state:
     st.session_state["messages"] = [{"role": "assistant", "content": "How can I help you?"}]
   
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
+
+if "agent" not in st.session_state:
+    st.session_state["agent"] = Agent()
+    
+if uploaded_file is not None and st.session_state["agent"].uploaded_cv is None:
+    st.session_state["agent"].uploaded_cv = uploaded_file.read()
+    prompt= """
+        I have just uploaded new CV to your memory. 
+        Make sure you note this. 
+        Now you must call extract_data_from_pdf function to extract data from file that is stored inside your memory
+        """
+    st.session_state.messages.append({"role": "user", "content": prompt})    
+    with st.chat_message("assistant"):
+        response = st.write_stream(st.session_state["agent"].ask_streaming(prompt))
+    st.session_state.messages.append({"role": "assistant", "content": response})  
+    
+elif uploaded_file is None and st.session_state["agent"].uploaded_cv is not None:
+    st.session_state["agent"].uploaded_cv = None
+    prompt = """
+        I have deleted CV from your memory. 
+        Now you do not have access to it.
+        """
+    st.session_state.messages.append({"role": "user", "content": prompt})    
+    with st.chat_message("assistant"):
+        response = st.write_stream(st.session_state["agent"].ask_streaming(prompt))
+
 
 if prompt := st.chat_input():
     st.session_state.messages.append({"role": "user", "content": prompt})

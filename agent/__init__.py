@@ -31,6 +31,7 @@ class Agent:
             arguments=KernelArguments(),
         )     
         self.thread : ChatHistoryAgentThread | None = None
+        self.uploaded_cv : bytes | None = None
     
     def run_conversation_loop(self):
         async def conversation():
