@@ -3,7 +3,7 @@ import pdfplumber
 class PdfService:
     """Service to handle PDF file operations."""
 
-    def extract_data_from_pdf(self, path: str) -> str:
+    def extract_data_from_pdf_path(self, path: str) -> str:
         """Extracts text from a PDF file."""
         cv_data = []
 

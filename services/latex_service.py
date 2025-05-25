@@ -24,24 +24,29 @@ class LatexService:
         return template.render(**cv.model_dump())
         
        
-    def render_pdf_file(self, rendered_tex: str, file_name: str) -> None:
-        with tempfile.TemporaryDirectory() as tmpdirname:
-            tex_path = os.path.join(tmpdirname, f"{file_name}.tex")
-            with open(tex_path, "w", encoding="utf-8") as f:
-                f.write(rendered_tex)
+    def render_pdf_file(self, rendered_tex: str, file_name: str) -> bytes:
+        try:
+            with tempfile.TemporaryDirectory() as tmpdirname:
+                tex_path = os.path.join(tmpdirname, f"{file_name}.tex")
+                with open(tex_path, "w", encoding="utf-8") as f:
+                    f.write(rendered_tex)
 
-            render_command = self.xelatex_render_command + [f"{file_name}.tex"] 
-            subprocess.run(render_command, cwd=tmpdirname, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                render_command = self.xelatex_render_command + [f"{file_name}.tex"] 
+                subprocess.run(render_command, cwd=tmpdirname, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-            pdf_path = os.path.join(tmpdirname, f"{file_name}.pdf")
-            with open(pdf_path, "rb") as f:
-                pdf_data = f.read()
+                pdf_path = os.path.join(tmpdirname, f"{file_name}.pdf")
+                with open(pdf_path, "rb") as f:
+                    pdf_data = f.read()
 
-            output_pdf_path = os.path.join(self.output_path, f'{file_name}.pdf')
-            with open(output_pdf_path, "wb") as f:
-                f.write(pdf_data)
+                output_pdf_path = os.path.join(self.output_path, f'{file_name}.pdf')
+                with open(output_pdf_path, "wb") as f:
+                    f.write(pdf_data)
 
-            print(f"PDF file generated successfully at {output_pdf_path}")
+                print(f"PDF file generated successfully at {output_pdf_path}")
+        except Exception as e:
+            print(f"Exception: {e}")
+        finally:
+            return pdf_data
            
              
     def render_tex_file(self, rendered_tex: str, fileName: str) -> None:

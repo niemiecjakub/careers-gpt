@@ -1,6 +1,5 @@
 import os
 import asyncio
-from tools import spinner_async
 from semantic_kernel import Kernel
 from semantic_kernel.agents import ChatCompletionAgent, ChatHistoryAgentThread
 from semantic_kernel.connectors.ai.open_ai import OpenAIChatCompletion, OpenAIPromptExecutionSettings

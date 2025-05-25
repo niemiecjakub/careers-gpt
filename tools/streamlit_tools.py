@@ -1,7 +1,9 @@
 import streamlit as st
 from functools import wraps
 
-def spinner_async(message="Loading..."):
+DEFAULT_MESSAGE = "Loading..."
+
+def spinner_async(message=DEFAULT_MESSAGE):
     def decorator(func):
         @wraps(func)
         async def wrapper(*args, **kwargs):
@@ -15,10 +17,7 @@ def spinner_async(message="Loading..."):
         return wrapper
     return decorator
 
-import streamlit as st
-from functools import wraps
-
-def spinner(message="Loading..."):
+def spinner(message=DEFAULT_MESSAGE):
     def decorator(func):
         @wraps(func)
         def wrapper(*args, **kwargs):
