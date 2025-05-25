@@ -1,12 +1,9 @@
-import os
-import ollama
 from semantic_kernel import Kernel
-from semantic_kernel.functions import kernel_function, KernelArguments, KernelFunctionFromPrompt
-from semantic_kernel.connectors.ai.open_ai import OpenAIChatPromptExecutionSettings
-from typing import Annotated, Optional, List
+from semantic_kernel.functions import kernel_function
+from typing import Annotated, Optional
 from models import CompanyProCons, CompanyRatingSummary
-from data.db_models import Company
 from services import CompanyReviewService
+from tools import spinner
 
 class CompanyReviewPlugin:
     """Plugin for extracting company review data."""
@@ -14,6 +11,7 @@ class CompanyReviewPlugin:
     def __init__(self, kernel: Kernel):
         self.kernel = kernel
 
+    @spinner("Getting company rating from the database")  
     @kernel_function(description="Retrieve the aggregated rating summary for a given company, including average ratings across categories and review count.")
     def get_company_rating(
         self,
@@ -29,7 +27,8 @@ class CompanyReviewPlugin:
             company_id=company_id,
             current_employee=employee_status
         )
-    
+ 
+    @spinner("Getting pros & cons from the database")     
     @kernel_function(description="Retrieve aggregated pros and cons from employee reviews for a given company.")
     def get_company_pros_cons(
         self, 

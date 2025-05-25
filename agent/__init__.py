@@ -1,5 +1,6 @@
 import os
 import asyncio
+from tools import spinner_async
 from semantic_kernel import Kernel
 from semantic_kernel.agents import ChatCompletionAgent, ChatHistoryAgentThread
 from semantic_kernel.connectors.ai.open_ai import OpenAIChatCompletion, OpenAIPromptExecutionSettings
@@ -15,7 +16,10 @@ class Agent:
         settings.function_choice_behavior = FunctionChoiceBehavior.Auto()
         
         self.kernel = Kernel()
-        self.kernel.add_service(OpenAIChatCompletion(api_key=os.getenv("OPENAI_API_KEY"),ai_model_id=os.getenv("CHAT_MODEL_ID")))
+        self.kernel.add_service(OpenAIChatCompletion(
+            api_key=os.getenv("OPENAI_API_KEY"),
+            ai_model_id=os.getenv("CHAT_MODEL_ID")
+        ))
         self.kernel.add_plugin(CvPlugin(self.kernel), "cv_plgin")
         self.kernel.add_plugin(JobPlugin(self.kernel), "job_plugin")
         self.kernel.add_plugin(SearchPlugin(self.kernel), "search_plugin")
@@ -26,10 +30,7 @@ class Agent:
             name="jobAssistant",
             instructions= JOB_AGENT_SYSTEM_PROMPT,
             arguments=KernelArguments(),
-        )
-        
-        self.i = 0
-        
+        )     
         self.thread : ChatHistoryAgentThread | None = None
     
     def run_conversation_loop(self):
@@ -41,14 +42,9 @@ class Agent:
                 async for response in self.agent.invoke_stream(messages=input_text, thread=thread):
                     print(response, end="")
                     thread = response.thread
-                print(end="\n\n")
-                
+                print(end="\n\n")        
+                     
         asyncio.run(conversation())
-
-    async def ask(self, message: str):
-        response = await self.agent.get_response(messages=message, thread=self.thread)
-        self.thread = response.thread
-        return response.content.content
     
     async def ask_streaming(self, message: str):
         async for response in self.agent.invoke_stream(messages=message, thread=self.thread):

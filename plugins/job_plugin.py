@@ -1,4 +1,5 @@
 import json
+from tools import spinner_async
 from typing import Annotated
 from semantic_kernel import Kernel
 from models import JobDocument
@@ -12,6 +13,7 @@ class JobPlugin:
     def __init__(self, kenrel : Kernel):
         self.kenrel = kenrel
 
+    @spinner_async("Getting data from job offer URL")
     @kernel_function(description="Retrieves job data from a web page")
     async def extract_job_data_from_web_page(
         self, 

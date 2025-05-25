@@ -6,18 +6,20 @@ from semantic_kernel.functions import kernel_function, KernelArguments, KernelFu
 from semantic_kernel import Kernel
 from semantic_kernel.connectors.ai.open_ai import OpenAIChatPromptExecutionSettings
 from prompt_message import CV_DATA_EXTRACTOR_PROMPT
+from tools import spinner_async, spinner  
 
 class CvPlugin:
     """Plugin for extracting CV data."""
     def __init__(self, kernel: Kernel):
         self.kernel = kernel
 
+    @spinner_async("Extracting PDF data")
     @kernel_function(description="Retrives CV data from PDF file")
     async def extract_data_from_pdf(
         self, 
         filePath: Annotated[str, "The path to the PDF file"]
     ) -> Annotated[CvDocument, "The extracted CV data"]:
-        """Extracts text from a PDF file."""
+        """Extracts text from a PDF file."""  
         pdf_service = PdfService()
         cv_data = pdf_service.extract_data_from_pdf(filePath)
 
@@ -32,7 +34,8 @@ class CvPlugin:
 
         response = await extract_data_function.invoke(kernel=self.kernel,arguments=KernelArguments(settings=settings))     
         return CvDocument.model_validate(json.loads(str(response)))
-
+        
+    @spinner("Preparing PDF file")    
     @kernel_function(description="Export CV document as PDF file")
     def export_cv_as_pdf(
         self, 
@@ -43,7 +46,7 @@ class CvPlugin:
         latex_service = LatexService()
         latex = latex_service.generate_latex(template_name, cv)
         latex_service.render_pdf_file(latex, file_name)
-
+    
     @kernel_function(description="Get available CV template names")
     def get_template_names(self) -> Annotated[str, "CV PDF template names"]:
         return ["engineering"]
