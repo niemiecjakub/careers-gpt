@@ -11,9 +11,10 @@ st.set_page_config(
     layout="centered",
     initial_sidebar_state="expanded",
 )
-uploaded_file = st.file_uploader("Upload CV", type=["pdf", "docx", "txt"])
 
 #State
+if "files" not in st.session_state:
+    st.session_state["files"] = []
 if "agent" not in st.session_state:
     st.session_state["agent"] = Agent()  
 if "messages" not in st.session_state:
@@ -21,7 +22,21 @@ if "messages" not in st.session_state:
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
+
+#Sidebar
+with st.sidebar:
+    st.markdown("## Upload CV")
+    uploaded_file = st.file_uploader(label="",label_visibility="collapsed", type=["pdf", "docx", "txt"])
     
+    st.markdown("## Download files")
+    for file in st.session_state["files"]:
+        st.download_button(
+            label=file["label"],
+            data=file["data"],
+            file_name=f"{file['file_name']}.pdf",
+            mime=file["mime"],
+        )
+        
 #Cv upload
 if uploaded_file is not None and st.session_state["agent"].uploaded_cv is None:
     st.session_state["agent"].uploaded_cv = uploaded_file.read()

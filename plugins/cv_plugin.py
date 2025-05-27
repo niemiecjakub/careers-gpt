@@ -50,16 +50,23 @@ class CvPlugin:
         latex_service = LatexService()
         latex = latex_service.generate_latex(template_name, cv)
         pdf_bytes = latex_service.render_pdf_file(latex, file_name)
+        
+        mime = "application/pdf"    
         st.download_button(
-            label="Download PDF",
+            label=f"{file_name}.pdf",
             data=pdf_bytes,
             file_name=f"{file_name}.pdf",
-            mime="application/pdf",
+            mime=mime,
         )
+        st.session_state["files"].append({
+            "label":f"{file_name}.pdf",
+            "data":pdf_bytes,
+            "file_name":f"{file_name}.pdf",
+            "mime":mime,
+        })
     
         return True
 
- 
     @spinner("Getting available CV templates")  
     @kernel_function(description="Get available CV template names")
     def get_template_names(self) -> Annotated[str, "CV PDF template names"]:
