@@ -10,5 +10,5 @@ __all__ = [
     "EmploymentStatus",
     "Opinion",
     "Review",
-    "InitDatabase"
+    "InitDatabase",
 ]

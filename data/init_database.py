@@ -9,7 +9,6 @@ from sqlalchemy.exc import IntegrityError
 from datetime import datetime
 import math
 import ollama
-from dotenv import load_dotenv
 
 class InitDatabase:
     
