@@ -74,18 +74,18 @@ JOB_AGENT_SYSTEM_PROMPT = """
     """
 
 CHAT_WELCOME_MESSAGE = """
-Welcome! I'm here to help you navigate your career journey.
+    Welcome! I'm here to help you navigate your career journey.
 
-I can assist with:
+    I can assist with:
 
-- Polishing your CV for maximum impact.
-- Aligning your CV with specific job descriptions.
-- Preparing you for interviews with mock sessions and feedback.
-- Searching for company reviews and insights.
-- Create CV based on your experience.
+    - Polishing your CV for maximum impact.
+    - Aligning your CV with specific job descriptions.
+    - Preparing you for interviews with mock sessions and feedback.
+    - Searching for company reviews and insights.
+    - Create CV based on your experience.
 
-What's on your mind today? You can tell me your goal, or if you have your CV ready feel free to upload it.
-""" 
+    What's on your mind today? You can tell me your goal, or if you have your CV ready feel free to upload it.
+    """ 
     
 CV_DATA_EXTRACTOR_PROMPT = """
     # ROLE

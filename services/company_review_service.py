@@ -2,8 +2,9 @@ from typing import List, Optional
 from sqlalchemy.orm import joinedload
 from sqlalchemy import select, func, cast, String, desc
 from data import Session, Company, Review, EmploymentStatus
-from models import CompanyRatingSummary, CompanyProCons
+from models import CompanyRatingSummary, CompanyProsCons, CompanyReviewQuestionResultExtended
 from sqlalchemy import select
+from data.vanna import vn
 
 class CompanyReviewService:
     
@@ -75,7 +76,7 @@ class CompanyReviewService:
                 review_count=result.review_count
             )
 
-    def get_company_pros_cons(self, company_id: int, current_employee: Optional[bool] = None) -> CompanyProCons:
+    def get_company_pros_cons(self, company_id: int, current_employee: Optional[bool] = None) -> CompanyProsCons:
         """Get pros and cons for company"""
         with Session() as s:
             query = s.query(
@@ -93,7 +94,37 @@ class CompanyReviewService:
             if not reviews:
                 return None
             
-            return CompanyProCons(
+            return CompanyProsCons(
                 pros=[review.pros for review in reviews],
                 cons=[review.cons for review in reviews],
             )
+
+    def query_company_review_db(self, question: str) -> CompanyReviewQuestionResultExtended:
+        """Ask question about the Glassdoor company reviews database."""
+        sql, df, fig = vn.ask(
+            question = question, 
+            print_results=False, 
+            auto_train= False, 
+            visualize=True,
+            allow_llm_to_see_data= True)
+
+        can_chart_be_generated = vn.should_generate_chart(df)      
+        proposed_questions = vn.generate_followup_questions(question, sql, df)
+        summary = vn.generate_summary(question, df)
+        
+        return CompanyReviewQuestionResultExtended(
+            question=question,
+            proposed_questions=proposed_questions,
+            can_chart_be_generated=can_chart_be_generated,
+            summary=summary,
+            sql=sql,
+            df=df,
+            fig=fig
+        )
+        
+    def get_similar_questions(self, question: str) -> List[str]:
+        """Get similar questions to one being asked."""
+        result = vn.get_similar_question_sql(question=question)[:5]
+        return [q["question"] for q in result] if result else []
+
+        

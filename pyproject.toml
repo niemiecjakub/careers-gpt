@@ -17,5 +17,5 @@ dependencies = [
     "sqlalchemy>=2.0.41",
     "streamlit>=1.45.1",
     "vanna[chromadb,openai,postgres]>=0.7.9",
-    "protobuf==3.20.*"
+    "protobuf==3.20.*",
 ]
